@@ -1,46 +1,49 @@
 <!DOCTYPE html>
 <html>
 <head>
+    <!-- 在线引入jquery -->
 	<script src="https://cdn.bootcdn.net/ajax/libs/jquery/3.6.1/jquery.js"></script>
+	<!-- 在线引入web3.min.js -->
 	<script src="https://cdn.jsdelivr.net/npm/web3@latest/dist/web3.min.js"></script>
 	<title></title>
-	<div id="name"></div>
+	显示名字：<div id="show_name"></div>
+	显示幸运号码：<div id="show_luck_num"></div>
 	<from id="form">
-		<input type="text" name="input_name" id="input_name">
-		<input type="button" name="setName" value="提交" onclick="setName()">
+		<div>名字：<input type="text" name="name" id="name"></div>
+		<div>幸运号码：<input type="text" name="luckNum" id="luckNum"></div>
+		<input type="button" value="提交" onclick="submit()">
 	</from>
 </head>
 <body>
 	<script type="text/javascript">
 		let contract
+		let web3
 		$(function() {
-		// 初始化 Web3
+          // 初始化 Web3
 		  if (typeof web3 !== 'undefined') {
 		      web3 = new Web3(web3.currentProvider);
 		  } else {
 		      web3 = new Web3(new Web3.providers.HttpProvider('http://localhost:7545'));
 		  }
-
-		  // 设置默认账户
-		  web3.eth.defaultAccount = web3.eth.accounts[0];
+		 
+		  // 测试是否连接成功
+		  web3.eth.net.isListening()
+   			.then(() => console.log('is connected'))
+   			.catch(e => console.log('Wow. Something went wrong: '+ e));
 		  // 设置合约 ABI
-		  var contractAbi = [
+		  var contractAbi = 
+		  	[
 				{
-					"inputs": [],
-					"stateMutability": "nonpayable",
-					"type": "constructor"
-				},
-				{
-					"inputs": [],
-					"name": "name",
-					"outputs": [
+					"inputs": [
 						{
-							"internalType": "string",
-							"name": "",
-							"type": "string"
+							"internalType": "uint32",
+							"name": "_luckNum",
+							"type": "uint32"
 						}
 					],
-					"stateMutability": "view",
+					"name": "setLuckNum",
+					"outputs": [],
+					"stateMutability": "nonpayable",
 					"type": "function"
 				},
 				{
@@ -55,19 +58,95 @@
 					"outputs": [],
 					"stateMutability": "nonpayable",
 					"type": "function"
+				},
+				{
+					"inputs": [],
+					"stateMutability": "nonpayable",
+					"type": "constructor"
+				},
+				{
+					"inputs": [],
+					"name": "getLuckNum",
+					"outputs": [
+						{
+							"internalType": "uint32",
+							"name": "",
+							"type": "uint32"
+						}
+					],
+					"stateMutability": "view",
+					"type": "function"
+				},
+				{
+					"inputs": [],
+					"name": "getName",
+					"outputs": [
+						{
+							"internalType": "string",
+							"name": "",
+							"type": "string"
+						}
+					],
+					"stateMutability": "view",
+					"type": "function"
+				},
+				{
+					"inputs": [],
+					"name": "luckNum",
+					"outputs": [
+						{
+							"internalType": "uint32",
+							"name": "",
+							"type": "uint32"
+						}
+					],
+					"stateMutability": "view",
+					"type": "function"
+				},
+				{
+					"inputs": [],
+					"name": "name",
+					"outputs": [
+						{
+							"internalType": "string",
+							"name": "",
+							"type": "string"
+						}
+					],
+					"stateMutability": "view",
+					"type": "function"
 				}
 			]
 
 		  // 设置合约地址
-		  let contractAddress = '0x2F24dc8508b92bce277021C9671A8C89eF59C74f';
+		  let contractAddress = '0xeB730Ef3Bc008376c88e09E6d23e364AEedA89a4';
 		  // 获取智能合约对象
 		  contract = new web3.eth.Contract(contractAbi,contractAddress);
-		  // 调用合约对象的方法，返回name
-		  //$('#name').val(contract.methods.name().call())
+		  // 调用合约对象的方法，返回名字
+		  contract.methods.getName().call()
+				  .then(function(result) {
+				  	console.log(result)
+				  	$('#show_name').text(result)
+				})
+		  // 调用合约对象的方法，返回幸运号码		  
+		  contract.methods.getLuckNum().call()
+				  .then(function(result) {
+				  	console.log(result)
+				  	$('#show_luck_num').text(result)
+				})		  
 		})
 
-		function setName() {
-			contract.methods.setName($('#input_name').val()).send({from: '0x2F24dc8508b92bce277021C9671A8C89eF59C74f'});
+		// 提交事假
+		function submit() {
+			// from是Ganache模拟的一个账户地址
+			contract.methods.setName($('#name').val()).send({from: '0x401Ec2d1E34d5Ae1fA07e5857Da9238CDC9dDf13'})
+			.then(function(result) {
+				  	console.log(result)
+				});
+			contract.methods.setLuckNum($('#luckNum').val()).send({from: '0x401Ec2d1E34d5Ae1fA07e5857Da9238CDC9dDf13'})
+			.then(function(result) {
+				  	console.log(result)
+				});;
 		}
 
 	</script>
